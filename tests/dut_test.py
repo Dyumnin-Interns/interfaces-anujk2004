@@ -226,7 +226,7 @@ async def dut_test(dut):
 
 
     tbh.solve()
-    for i in range (30):
+    for i in range (32):
         x= tbh.get_sols()
         addr_cover(x.get("write_address"), x.get("write_data"), x.get("write_en"), x.get("read_en"), x.get("read_address"))
         if x.get('read_en') ==1:
