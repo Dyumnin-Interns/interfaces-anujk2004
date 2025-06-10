@@ -115,7 +115,7 @@ class ReadDriver(BusDriver):
         self.entity.read_en.value = 0
 
 
-class TestBench:
+class dut_test:
     def __init__(self,name,entity,log):
         self.log=log
         self.name = name
@@ -189,12 +189,12 @@ class TestBench:
 
 
 @cocotb.test()
-async def dut_test(dut):
+async def duttest(dut):
     cocotb.start_soon(Clock(dut.CLK, 2, units="ns").start())
     log = SimLog ("interface_test")
     logging.getLogger().setLevel(logging.INFO)
 
-    tbh = TestBench(name='tb inst', entity=dut , log = log)
+    tbh = dut_test(name='dut test', entity=dut , log = log)
 
     await tbh.reset_dut()
 
@@ -250,30 +250,5 @@ async def dut_test(dut):
     log.info(f"Read Coverage: {coverage_db['top.cross.r'].cover_percentage:.2f}%")
 
 
-def start_build():
-    sim = os.getenv("SIM", "verilator")
-    dut_dir= Path(__file__).resolve().parent.parent
-    dut_dir = f"{dut_dir}/hdl"
-    hdl_toplevel ="dut"
-    verilog_sources = [f"[dur_dir]/{hdl_toplevel}.v", f" {dut_dir}/FIFO1.v", f"{dut_dir}/FIFO2.v"]
-    build_args = ["--trace", "--trace-fst"]
-
-    runner = get_runner(sim)
-
-    runner.build(
-        hdl_toplevel=hdl_toplevel,
-        verilog_sources=verilog_sources,
-        build_args=build_args,
-        waves=True,
-        always=True
-    )
-    runner.test(
-        test_module="dut_test",
-        hdl_toplevel=hdl_toplevel,
-        waves= True
-    )
-
-    if __name__=="__main__":
-        start_build()
 
 
