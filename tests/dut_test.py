@@ -6,12 +6,12 @@ from cocotb_bus.monitors import BusMonitor
 from cocotb_coverage.coverage  import CoverCross, CoverPoint , coverage_db
 import os
 from cocotb.log  import logging,SimLog
-from pathlib import Path
+
 from cocotb.clock import Clock
 import constraint
 import random as rnd
 
-from cocotb.runner import get_runner
+
 
 
 
@@ -120,32 +120,32 @@ class dut_test:
         self.log=log
         self.name = name
         self.entity = entity
-        self.CLK = self.entity.CLK
+        #self.CLK = self.entity.CLK
         # self.a_ls =[]
         # self.b_ls =[]
         # self.y_ls =[]
         self.stats=[]
         self.writer_event = Event()
         self.reader_event = Event()
-        self.ref_address = {'Astatus':0 , 'Bstatus':1, 'Ystatus':2 ,'Youtput':3 , 'Adata':4, 'Bdata':5}
+        #self.ref_address = {'Astatus':0 , 'Bstatus':1, 'Ystatus':2 ,'Youtput':3 , 'Adata':4, 'Bdata':5}
         self.writer = WriteDriver("write fifo", entity)
         self.reader = ReadDriver("read fifo", entity)
 
-    async def reset_dut(self):
-        await RisingEdge(self.CLK)
-        self.entity.write_address.value = 0
-        self.entity.write_data.value = 0
-        self.entity.write_en.value = 0
-        self.entity.read_en.value = 0
-        self.entity.read_data.value = 0
-        self.entity.read_address.value = 0
-        self.entity.RST_N.value = 1
-        await ClockCycles(self.CLK,4)
-        self.entity.RST_N.value = 0
-        await ClockCycles(self.CLK,4)
-        self.entity.RST_N.value = 1
-        await RisingEdge (self.CLK)
-        print(" reset done")
+    # async def reset_dut(self):
+    #     await RisingEdge(self.CLK)
+    #     self.entity.write_address.value = 0
+    #     self.entity.write_data.value = 0
+    #     self.entity.write_en.value = 0
+    #     self.entity.read_en.value = 0
+    #     self.entity.read_data.value = 0
+    #     self.entity.read_address.value = 0
+    #     self.entity.RST_N.value = 1
+    #     await ClockCycles(self.CLK,4)
+    #     self.entity.RST_N.value = 0
+    #     await ClockCycles(self.CLK,4)
+    #     self.entity.RST_N.value = 1
+    #     await RisingEdge (self.CLK)
+    #     print(" reset done")
     
     def stat_dec(self,addr,val):
         if addr == 3 :
@@ -196,7 +196,7 @@ async def duttest(dut):
 
     tbh = dut_test(name='dut test', entity=dut , log = log)
 
-    await tbh.reset_dut()
+    #await tbh.reset_dut()
 
     await tbh.writer._driver_send(transaction={'addr':4,'val' :0})
     await tbh.writer._driver_send(transaction={'addr':5,'val' :0})
