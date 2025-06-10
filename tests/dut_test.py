@@ -6,12 +6,12 @@ from cocotb_bus.monitors import BusMonitor
 from cocotb_coverage.coverage  import CoverCross, CoverPoint , coverage_db
 import os
 from cocotb.log  import logging,SimLog
-
+from pathlib import Path
 from cocotb.clock import Clock
 import constraint
 import random as rnd
 
-
+from cocotb.runner import get_runner
 
 
 
@@ -85,8 +85,8 @@ class WriteDriver(BusDriver):
 
     async def _driver_send(self, transaction, sync = True):
         await RisingEdge(self.CLK)
-        # if (self.entity.write_rdy.value.integer != 1):
-        #     await RisingEdge(self.entity.write_rdy)
+        if (self.entity.write_rdy.value.integer != 1):
+            await RisingEdge(self.entity.write_rdy)
         
         self.entity.write_en.value =1
         self.entity.write_address.value = transaction.get('addr')
@@ -105,8 +105,8 @@ class ReadDriver(BusDriver):
 
     async def _driver_send(self, transaction, sync = True):
         await RisingEdge(self.CLK)
-        # if (self.entity.read_rdy.value.integer != 1):
-        #     await RisingEdge(self.entity.read_rdy)
+        if (self.entity.read_rdy.value.integer != 1):
+             await RisingEdge(self.entity.read_rdy)
         
         self.entity.read_en.value =1
         self.entity.read_address.value = transaction.get('addr')
@@ -131,21 +131,21 @@ class TestBench:
         self.writer = WriteDriver("write fifo", entity)
         self.reader = ReadDriver("read fifo", entity)
 
-    # async def reset_dut(self):
-    #     await RisingEdge(self.CLK)
-    #     self.entity.write_address.value = 0
-    #     self.entity.write_data.value = 0
-    #     self.entity.write_en.value = 0
-    #     self.entity.read_en.value = 0
-    #     self.entity.read_data.value = 0
-    #     self.entity.read_address.value = 0
-    #     self.entity.RST_N.value = 1
-    #     await ClockCycles(self.CLK,4)
-    #     self.entity.RST_N.value = 0
-    #     await ClockCycles(self.CLK,4)
-    #     self.entity.RST_N.value = 1
-    #     await RisingEdge (self.CLK)
-    #     print(" reset done")
+    async def reset_dut(self):
+        await RisingEdge(self.CLK)
+        self.entity.write_address.value = 0
+        self.entity.write_data.value = 0
+        self.entity.write_en.value = 0
+        self.entity.read_en.value = 0
+        self.entity.read_data.value = 0
+        self.entity.read_address.value = 0
+        self.entity.RST_N.value = 1
+        await ClockCycles(self.CLK,4)
+        self.entity.RST_N.value = 0
+        await ClockCycles(self.CLK,4)
+        self.entity.RST_N.value = 1
+        await RisingEdge (self.CLK)
+        print(" reset done")
     
     def stat_dec(self,addr,val):
         if addr == 3 :
@@ -196,7 +196,7 @@ async def dut_test(dut):
 
     tbh = TestBench(name='tb inst', entity=dut , log = log)
 
-    #await tbh.reset_dut()
+    await tbh.reset_dut()
 
     await tbh.writer._driver_send(transaction={'addr':4,'val' :0})
     await tbh.writer._driver_send(transaction={'addr':5,'val' :0})
@@ -248,4 +248,32 @@ async def dut_test(dut):
     log.info(f"functional Coverage: {coverage_db['top.cross.ab'].cover_percentage:.2f}%")
     log.info(f"Write Coverage: {coverage_db['top.cross.w'].cover_percentage:.2f}%")
     log.info(f"Read Coverage: {coverage_db['top.cross.r'].cover_percentage:.2f}%")
+
+
+def start_build():
+    sim = os.getenv("SIM", "verilator")
+    dut_dir= Path(__file__).resolve().parent.parent
+    dut_dir = f"{dut_dir}/hdl"
+    hdl_toplevel ="dut"
+    verilog_sources = [f"[dur_dir]/{hdl_toplevel}.v", f" {dut_dir}/FIFO1.v", f"{dut_dir}/FIFO2.v"]
+    build_args = ["--trace", "--trace-fst"]
+
+    runner = get_runner(sim)
+
+    runner.build(
+        hdl_toplevel=hdl_toplevel,
+        verilog_sources=verilog_sources,
+        build_args=build_args,
+        waves=True,
+        always=True
+    )
+    runner.test(
+        test_module="dut_test",
+        hdl_toplevel=hdl_toplevel,
+        waves= True
+    )
+
+    if __name__=="__main__":
+        start_build()
+
 
