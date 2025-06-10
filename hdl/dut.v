@@ -170,7 +170,7 @@ module dut(CLK,
 
 
 initial begin 
-    $dumpfile("dut.vcd");
+	$dumpfile("waveform.vcd");
     $dumpvars;
 end
 endmodule  // dut
