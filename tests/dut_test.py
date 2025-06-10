@@ -1,3 +1,4 @@
+
 import cocotb 
 from cocotb.triggers import Timer , ClockCycles,RisingEdge, ReadOnly ,NextTimeStep , ReadWrite, FallingEdge, Event
 from cocotb_bus.drivers import BusDriver
@@ -22,7 +23,8 @@ import random as rnd
 
 @CoverPoint("top.b", #noqa F405
             xf=lambda x,y: y,
-            bins=[0,1]            
+            bins=[0,1]
+            
 )
 
 @CoverCross("top.cross.ab", 
@@ -116,16 +118,16 @@ class ReadDriver(BusDriver):
 class TestBench:
     def __init__(self,name,entity,log):
         self.log=log
-        # self.name = name
+        self.name = name
         self.entity = entity
-        # self.CLK = self.entity.CLK
+        self.CLK = self.entity.CLK
         # self.a_ls =[]
         # self.b_ls =[]
         # self.y_ls =[]
         self.stats=[]
         self.writer_event = Event()
         self.reader_event = Event()
-        # self.ref_address = {'Astatus':0 , 'Bstatus':1, 'Ystatus':2 ,'Youtput':3 , 'Adata':4, 'Bdata':5}
+        self.ref_address = {'Astatus':0 , 'Bstatus':1, 'Ystatus':2 ,'Youtput':3 , 'Adata':4, 'Bdata':5}
         self.writer = WriteDriver("write fifo", entity)
         self.reader = ReadDriver("read fifo", entity)
 
@@ -246,3 +248,4 @@ async def dut_test(dut):
     log.info(f"functional Coverage: {coverage_db['top.cross.ab'].cover_percentage:.2f}%")
     log.info(f"Write Coverage: {coverage_db['top.cross.w'].cover_percentage:.2f}%")
     log.info(f"Read Coverage: {coverage_db['top.cross.r'].cover_percentage:.2f}%")
+
